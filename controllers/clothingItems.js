@@ -1,28 +1,24 @@
 const ClothingItem = require("../models/clothingItem");
 
-const getItems = (req, res) => {
-  ClothingItem.find()
-    .then((items) => res.send(items))
-    .catch((err) => console.log(err));
-};
-
-const newItem = (req, res) => {
+const createItem = (req, res) => {
+  console.log(req);
+  console.log(req.body);
   const { name, weather, imageUrl } = req.body;
-  const owner = req.user._id;
 
-  ClothingItem.create({ name, weather, imageUrl, owner });
+  ClothingItem.create({ name, weather, imageUrl }).then((item) => {
+    console.log(item);
+    res.send({ data: item }).catch((err) => {
+      res.status(500).send({ message: "Error from createItem", err });
+    });
+  });
 };
 
-const deleteItem = (req, res) => {
-  const { itemId } = req.params;
-  const { _id: userId } = req.user;
+//Read
 
-  ClothingItem.findOne({ _id: itemId });
-  ClothingItem.deleteOne({ _id: itemId, owner: userId });
-};
+//Update
+
+//Delete
 
 module.exports = {
-  getItems,
-  newItem,
-  deleteItem,
+  createItem,
 };

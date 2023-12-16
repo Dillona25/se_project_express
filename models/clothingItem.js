@@ -8,34 +8,21 @@ const clothingItemSchema = new mongoose.Schema({
     minlength: 2,
     maxlength: 30,
   },
-  Weather: {
+  weather: {
     type: String,
     required: true,
     enum: ["hot", "cold", "warm"],
   },
   imageURL: {
     type: String,
-    required: true,
-    validate: {
-      validator(value) {
-        return validator.isURL(value);
-      },
-      message: "You must enter a valid URL",
-    },
-  },
-  owner: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
-    required: true,
-  },
-  likes: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
-    default: [],
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now,
+    // required: true,
+    // validate: {
+    //   validator(value) {
+    //     return validator.isURL(value);
+    //   },
+    //   message: "You must enter a valid URL",
+    // },
+    //? Getting error with postman POST req whenever I try to use validation. Also get error of app crash every other save
   },
 });
 
