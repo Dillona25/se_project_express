@@ -13,12 +13,6 @@ const createItem = (req, res) => {
   });
 };
 
-//Read
-
-//Update
-
-//Delete
-
 module.exports = {
   createItem,
 };
