@@ -13,16 +13,13 @@ const clothingItemSchema = new mongoose.Schema({
     required: true,
     enum: ["hot", "cold", "warm"],
   },
-  imageURL: {
+  imageUrl: {
     type: String,
     required: true,
     validate: {
-      validator(value) {
-        return validator.isURL(value);
-      },
+      validator: (v) => validator.isURL(v),
       message: "You must enter a valid URL",
     },
-    //? Getting error with postman POST req whenever I try to use validation. Also get error of app crash every other save
   },
 });
 
