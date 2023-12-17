@@ -9,7 +9,7 @@ const getUsers = (req, res) => {
 };
 
 const getUser = (req, res) => {
-  const { _id: userId } = req.user;
+  const { userId } = req.params;
   User.findById(userId)
     .then((user) => res.status(200).send({ data: user }))
     .catch((err) => {
