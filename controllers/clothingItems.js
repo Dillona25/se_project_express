@@ -1,4 +1,6 @@
+const clothingItem = require("../models/clothingItem");
 const ClothingItem = require("../models/clothingItem");
+const { DEFAULT_ERROR, NOTFOUND_ERROR } = require("../utils/errors");
 
 const createItem = (req, res) => {
   console.log(req);
@@ -11,7 +13,8 @@ const createItem = (req, res) => {
       res.send({ data: item });
     })
     .catch((err) => {
-      res.status(500).send({ message: "Error from createItem", err });
+      console.log(err);
+      res.status(DEFAULT_ERROR).send({ message: "Internal server error", err });
     });
 };
 
@@ -19,7 +22,8 @@ const getItems = (req, res) => {
   ClothingItem.find({})
     .then((items) => res.status(200).send(items))
     .catch((err) => {
-      res.status(500).send({ message: "Error from getItem", err });
+      console.log(err);
+      res.status(DEFAULT_ERROR).send({ message: "Internal server error", err });
     });
 };
 
@@ -31,7 +35,8 @@ const updateItem = (req, res) => {
     .orFail()
     .then((item) => res.status(200).send({ data: item }))
     .catch((err) => {
-      res.status(500).send({ message: "Error from updateItem", err });
+      console.log(err);
+      res.status(DEFAULT_ERROR).send({ message: "Internal server error", err });
     });
 };
 
@@ -40,9 +45,42 @@ const deleteItem = (req, res) => {
 
   ClothingItem.findByIdAndDelete(itemId)
     .orFail()
-    .then((item) => res.status(204).send({}))
+    .then((item) => res.status(200).send(item))
     .catch((err) => {
-      res.status(500).send({ message: "Error from deleteItem", err });
+      console.log(err);
+      res.status(DEFAULT_ERROR).send({ message: "Internal server error", err });
+    });
+};
+
+const likeItem = (req, res) => {
+  const { itemId } = req.params;
+  const { _id: userId } = req.user;
+
+  clothingItem
+    .findByIdAndUpdate(itemId, { $addToSet: { likes: userId } }, { new: true })
+    .orFail()
+    .then((item) => {
+      res.send({ data: item });
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(DEFAULT_ERROR).send({ message: "Internal server error", err });
+    });
+};
+
+const unlikeItem = (req, res) => {
+  const { itemId } = req.params;
+  const { _id: userId } = req.user;
+
+  clothingItem
+    .findByIdAndUpdate(itemId, { $pull: { likes: userId } }, { new: true })
+    .orFail()
+    .then((item) => {
+      res.send({ data: item });
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(DEFAULT_ERROR).send({ message: "Internal server error", err });
     });
 };
 
@@ -51,4 +89,6 @@ module.exports = {
   getItems,
   updateItem,
   deleteItem,
+  likeItem,
+  unlikeItem,
 };

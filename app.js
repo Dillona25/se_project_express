@@ -12,6 +12,17 @@ mongoose.connect("mongodb://127.0.0.1:27017/wtwr_db", (r) => {
 app.use(express.json());
 app.use(routes);
 
+app.use((req, res, next) => {
+  req.user = {
+    _id: "657e9d98333e92cae1a3bd42",
+  };
+  next();
+});
+
+module.exports.createClothingItem = (req, res) => {
+  console.log(req.user._id);
+};
+
 app.listen(PORT, () => {
   console.log(`App listening on ${PORT}`);
   console.log("This is all working");
