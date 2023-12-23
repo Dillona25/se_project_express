@@ -76,7 +76,7 @@ const deleteItem = (req, res) => {
 
 const likeItem = (req, res) => {
   const { itemId } = req.params;
-  const { _id: userId } = req.user;
+  const { _id: userId } = req.body;
 
   clothingItem
     .findByIdAndUpdate(itemId, { $addToSet: { likes: userId } }, { new: true })
@@ -85,7 +85,7 @@ const likeItem = (req, res) => {
       res.send({ data: item });
     })
     .catch((err) => {
-      console.error(err);
+      console.error(err.name);
       if (err.name === "CastError") {
         res.status(NOTFOUND_ERROR.code).send({ message: err.message });
       } else {
@@ -98,7 +98,7 @@ const likeItem = (req, res) => {
 
 const unlikeItem = (req, res) => {
   const { itemId } = req.params;
-  const { _id: userId } = req.user;
+  const { _id: userId } = req.body;
 
   clothingItem
     .findByIdAndUpdate(itemId, { $pull: { likes: userId } }, { new: true })
