@@ -11,7 +11,7 @@ const createItem = (req, res) => {
   console.log(req.body);
   const { name, weather, imageUrl } = req.body;
 
-  ClothingItem.create({ name, weather, imageUrl })
+  ClothingItem.create({ name, weather, imageUrl, owner: req.user._id })
     .then((item) => {
       console.log(item);
       res.send({ data: item });
@@ -55,7 +55,7 @@ const deleteItem = (req, res) => {
 
 const likeItem = (req, res) => {
   const { itemId } = req.params;
-  const { _id: userId } = req.body;
+  const { _id: userId } = req.user;
 
   clothingItem
     .findByIdAndUpdate(itemId, { $addToSet: { likes: userId } }, { new: true })
@@ -77,7 +77,7 @@ const likeItem = (req, res) => {
 
 const unlikeItem = (req, res) => {
   const { itemId } = req.params;
-  const { _id: userId } = req.body;
+  const { _id: userId } = req.user;
 
   clothingItem
     .findByIdAndUpdate(itemId, { $pull: { likes: userId } }, { new: true })
