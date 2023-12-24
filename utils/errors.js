@@ -1,17 +1,8 @@
-const INVALID_DATA_ERROR = {
-  status: "BadRequest",
-  code: 400,
-};
+const INVALID_DATA_ERROR = 400;
 
-const NOTFOUND_ERROR = {
-  status: "NotFound",
-  code: 404,
-};
+const NOTFOUND_ERROR = 404;
 
-const DEFAULT_ERROR = {
-  status: "InternalServerError",
-  code: 500,
-};
+const DEFAULT_ERROR = 500;
 
 module.exports = {
   INVALID_DATA_ERROR,

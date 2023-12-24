@@ -10,7 +10,7 @@ const getUsers = (req, res) => {
     .then((user) => res.status(200).send(user))
     .catch((err) => {
       console.error(err);
-      res.status(DEFAULT_ERROR.code).send({ message: "Internal server error" });
+      res.status(DEFAULT_ERROR).send({ message: "Internal server error" });
     });
 };
 
@@ -20,12 +20,12 @@ const getUser = (req, res) => {
     .then((user) => res.status(200).send({ data: user }))
     .catch((err) => {
       console.error(err);
-      if (err.name === "CastError") {
-        res.status(NOTFOUND_ERROR.code).send({ message: err.message });
+      if (err.name === "DocumentNotFoundError") {
+        res.status(NOTFOUND_ERROR).send({ message: err.message });
+      } else if (err.name === "CastError") {
+        res.status(INVALID_DATA_ERROR).send({ message: err.message });
       } else {
-        res
-          .status(DEFAULT_ERROR.code)
-          .send({ message: "Internal server error" });
+        res.status(DEFAULT_ERROR).send({ message: "Internal server error" });
       }
     });
 };
@@ -39,11 +39,9 @@ const createUser = (req, res) => {
     .catch((err) => {
       console.error(err);
       if (err.name === "ValidationError") {
-        res.status(INVALID_DATA_ERROR.code).send({ message: err.message });
+        res.status(INVALID_DATA_ERROR).send({ message: err.message });
       } else {
-        res
-          .status(DEFAULT_ERROR.code)
-          .send({ message: "Internal server error" });
+        res.status(DEFAULT_ERROR).send({ message: "Internal server error" });
       }
     });
 };

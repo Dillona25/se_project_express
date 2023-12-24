@@ -1,9 +1,9 @@
 const clothingItem = require("../models/clothingItem");
 const ClothingItem = require("../models/clothingItem");
 const {
-  INVALID_DATA_ERROR,
   NOTFOUND_ERROR,
   DEFAULT_ERROR,
+  INVALID_DATA_ERROR,
 } = require("../utils/errors");
 
 const createItem = (req, res) => {
@@ -19,11 +19,9 @@ const createItem = (req, res) => {
     .catch((err) => {
       console.error(err);
       if (err.name === "ValidationError") {
-        res.status(INVALID_DATA_ERROR.code).send({ message: err.message });
+        res.status(NOTFOUND_ERROR).send({ message: err.message });
       } else {
-        res
-          .status(DEFAULT_ERROR.code)
-          .send({ message: "Internal server error" });
+        res.status(DEFAULT_ERROR).send({ message: "Internal server error" });
       }
     });
 };
@@ -33,26 +31,7 @@ const getItems = (req, res) => {
     .then((items) => res.status(200).send(items))
     .catch((err) => {
       console.error(err);
-      res.status(DEFAULT_ERROR.code).send({ message: "Internal server error" });
-    });
-};
-
-const updateItem = (req, res) => {
-  const { itemId } = req.params;
-  const { imageUrl } = req.body;
-
-  ClothingItem.findByIdAndUpdate(itemId, { $set: { imageUrl } })
-    .orFail()
-    .then((item) => res.status(200).send({ data: item }))
-    .catch((err) => {
-      console.error(err.name);
-      if (err.name === "CastError") {
-        res.status(NOTFOUND_ERROR.code).send({ message: err.message });
-      } else {
-        res
-          .status(DEFAULT_ERROR.code)
-          .send({ message: "Internal server error" });
-      }
+      res.status(DEFAULT_ERROR).send({ message: "Internal server error" });
     });
 };
 
@@ -64,12 +43,12 @@ const deleteItem = (req, res) => {
     .then((item) => res.status(200).send(item))
     .catch((err) => {
       console.error(err);
-      if (err.name === "CastError") {
-        res.status(NOTFOUND_ERROR.code).send({ message: err.message });
+      if (err.name === "DocumentNotFoundError") {
+        res.status(NOTFOUND_ERROR).send({ message: err.message });
+      } else if (err.name === "CastError") {
+        res.status(INVALID_DATA_ERROR).send({ message: err.message });
       } else {
-        res
-          .status(DEFAULT_ERROR.code)
-          .send({ message: "Internal server error" });
+        res.status(DEFAULT_ERROR).send({ message: "Internal server error" });
       }
     });
 };
@@ -85,13 +64,13 @@ const likeItem = (req, res) => {
       res.send({ data: item });
     })
     .catch((err) => {
-      console.error(err.name);
-      if (err.name === "CastError") {
-        res.status(NOTFOUND_ERROR.code).send({ message: err.message });
+      console.error(err);
+      if (err.name === "DocumentNotFoundError") {
+        res.status(NOTFOUND_ERROR).send({ message: err.message });
+      } else if (err.name === "CastError") {
+        res.status(INVALID_DATA_ERROR).send({ message: err.message });
       } else {
-        res
-          .status(DEFAULT_ERROR.code)
-          .send({ message: "Internal server error" });
+        res.status(DEFAULT_ERROR).send({ message: "Internal server error" });
       }
     });
 };
@@ -108,12 +87,12 @@ const unlikeItem = (req, res) => {
     })
     .catch((err) => {
       console.error(err);
-      if (err.name === "CastError") {
-        res.status(NOTFOUND_ERROR.code).send({ message: err.message });
+      if (err.name === "DocumentNotFoundError") {
+        res.status(NOTFOUND_ERROR).send({ message: err.message });
+      } else if (err.name === "CastError") {
+        res.status(INVALID_DATA_ERROR).send({ message: err.message });
       } else {
-        res
-          .status(DEFAULT_ERROR.code)
-          .send({ message: "Internal server error" });
+        res.status(DEFAULT_ERROR).send({ message: "Internal server error" });
       }
     });
 };
@@ -121,7 +100,6 @@ const unlikeItem = (req, res) => {
 module.exports = {
   createItem,
   getItems,
-  updateItem,
   deleteItem,
   likeItem,
   unlikeItem,

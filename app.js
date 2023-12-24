@@ -19,10 +19,6 @@ app.use((req, res, next) => {
   next();
 });
 
-module.exports.createClothingItem = (req, res) => {
-  console.log(req.user._id);
-};
-
 app.listen(PORT, () => {
   console.log(`App listening on ${PORT}`);
   console.log("This is all working");
