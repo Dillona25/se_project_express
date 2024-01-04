@@ -86,8 +86,33 @@ const login = (req, res) => {
     });
 };
 
+const updateUser = (req, res, next) => {
+  const { name, avatar } = req.body;
+  const userId = req.user._id;
+
+  User.findByIdAndUpdate(
+    userId,
+    { name, avatar },
+    { new: true, runValidators: true },
+  )
+    .then((user) => {
+      if (!user) {
+        next(new NOTFOUND_ERROR("User not found"));
+      }
+      res.send({ data: user });
+    })
+    .catch((err) => {
+      if (err.name === "ValidationError") {
+        res.status(INVALID_DATA_ERROR).send({ message: err.message });
+      } else {
+        next(err);
+      }
+    });
+};
+
 module.exports = {
   getUsers,
   getUser,
   createUser,
+  updateUser,
 };
