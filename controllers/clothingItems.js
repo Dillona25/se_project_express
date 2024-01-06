@@ -4,6 +4,7 @@ const {
   NOTFOUND_ERROR,
   DEFAULT_ERROR,
   INVALID_DATA_ERROR,
+  UNAUTHORIZED_ERROR,
 } = require("../utils/errors");
 
 const createItem = (req, res) => {
@@ -38,11 +39,18 @@ const getItems = (req, res) => {
 const deleteItem = (req, res) => {
   const { itemId } = req.params;
 
-  //* Add logic so only owner can delete
-
-  ClothingItem.findByIdAndDelete(itemId)
+  ClothingItem.findByIdAndDelete({ itemId })
     .orFail()
-    .then((item) => res.status(200).send(item))
+    .then((item) => {
+      if (!item.owner.equals(req.user._id)) {
+        throw new Error(
+          UNAUTHORIZED_ERROR("You do not have access to this item"),
+        );
+      }
+      return item
+        .deleteOne()
+        .then(() => res.status(200).send({ message: "Item was deleted!" }));
+    })
     .catch((err) => {
       console.error(err);
       if (err.name === "DocumentNotFoundError") {
