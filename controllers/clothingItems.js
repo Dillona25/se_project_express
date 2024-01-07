@@ -4,6 +4,7 @@ const {
   NOTFOUND_ERROR,
   DEFAULT_ERROR,
   INVALID_DATA_ERROR,
+  FORBIDDEN_ERROR,
 } = require("../utils/errors");
 
 const createItem = (req, res) => {
@@ -37,18 +38,25 @@ const getItems = (req, res) => {
 
 const deleteItem = (req, res) => {
   const { itemId } = req.params;
+  const { _id: userId } = req.user;
 
-  ClothingItem.findByIdAndDelete(itemId)
-    .orFail()
-    .then((item) => res.status(200).send(item))
+  ClothingItem.findOne({ _id: itemId })
+    .then((item) => {
+      if (!item) {
+        return Promise.reject(new Error("ID cannot be found"));
+      }
+      if (!item?.owner?.equals(userId)) {
+        return Promise.reject(new Error("You do own this item"));
+      }
+      return ClothingItem.deleteOne({ _id: itemId, owner: userId }).then(() => {
+        res.status(201).send({ message: "Item deleted" });
+      });
+    })
     .catch((err) => {
-      console.error(err);
-      if (err.name === "DocumentNotFoundError") {
+      if (err.message === "ID cannot be found") {
         res.status(NOTFOUND_ERROR).send({ message: err.message });
-      } else if (err.name === "CastError") {
-        res.status(INVALID_DATA_ERROR).send({ message: err.message });
-      } else {
-        res.status(DEFAULT_ERROR).send({ message: "Internal server error" });
+      } else if (err.message === "You do own this item") {
+        res.status(FORBIDDEN_ERROR).send({ message: err.message });
       }
     });
 };

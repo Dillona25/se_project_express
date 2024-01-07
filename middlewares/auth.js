@@ -23,7 +23,7 @@ const handleAuthorization = (req, res, next) => {
   try {
     payload = jwt.verify(token, JWT_SECRET);
   } catch (err) {
-    return handleAuthError(res);
+    return authError(res);
   }
 
   req.user = payload;

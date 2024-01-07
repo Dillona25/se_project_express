@@ -97,6 +97,29 @@ const getCurrentUser = (req, res) => {
     });
 };
 
+const updateUser = (req, res) => {
+  const { name, avatar } = req.body;
+  const userId = req.user._id;
+
+  User.findByIdAndUpdate(
+    userId,
+    { name, avatar },
+    { new: true, runValidators: true },
+  )
+    .then((user) => {
+      if (!user) {
+        return Promise.reject(new Error("User not found"));
+      } else {
+        res.send({ data: user });
+      }
+    })
+    .catch((err) => {
+      if (err.message === "User not found") {
+        res.status(NOTFOUND_ERROR).send({ message: err.message });
+      }
+    });
+};
+
 //* Add a controller and route to update a user
 
 module.exports = {
@@ -104,4 +127,5 @@ module.exports = {
   createUser,
   loginUser,
   getCurrentUser,
+  updateUser,
 };
