@@ -6,6 +6,8 @@ const {
   DEFAULT_ERROR,
   NOTFOUND_ERROR,
   INVALID_DATA_ERROR,
+  CONFLICT_ERROR,
+  UNAUTHORIZED_ERROR,
 } = require("../utils/errors");
 
 const getUsers = (req, res) => {
@@ -41,32 +43,34 @@ const createUser = (req, res) => {
         throw new Error("Enter a valid email");
       }
       if (user) {
-        throw new Error("Email already exists");
+        throw new Error("Email is already in use!");
       }
       return bcrypt.hash(password, 10);
     })
-    .then((hash) =>
-      User.create({ name, avatar, email, password: hash })
-        .then((user) => {
-          res.send({ data: user });
-        })
-        .catch((err) => {
-          console.error(err);
-          if (err.name === "ValidationError") {
-            res.status(INVALID_DATA_ERROR).send({ message: err.message });
-          } else {
-            res
-              .status(DEFAULT_ERROR)
-              .send({ message: "Internal server error" });
-          }
-        }),
-    );
+    .then((hash) => {
+      return User.create({ name, avatar, email, password: hash });
+    })
+    .then((user) => {
+      res.status(201).send({
+        data: user,
+      });
+    })
+    .catch((err) => {
+      console.error(err);
+      if (err.message === "Email is already in use!") {
+        res.status(CONFLICT_ERROR).send({ message: err.message });
+      } else if (err.message === "Enter a valid email") {
+        res.status(INVALID_DATA_ERROR).send({ message: err.message });
+      }
+    });
 };
 
-const login = (req, res) => {
+//* Add a controller and route to login a user
+
+const loginUser = (req, res) => {
   const { email, password } = req.body;
 
-  User.findUserByCredentials(email, password)
+  return User.findUserByCredentials(email, password)
     .then((user) => {
       if (!user) {
         return Promise.reject(new Error("Incorrect email or password"));
@@ -76,43 +80,30 @@ const login = (req, res) => {
     })
     .then((matched) => {
       if (!matched) {
-        return Promise.reject(new Error("Incorrect email or password"));
+        return Promise.reject(new Error("Incorrect password or email"));
       } else {
         const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
           expiresIn: "7d",
         });
+        //* Most requests working, one illegal error and user not defined on 2 of the requests
         res.send({ token });
       }
-    });
-};
-
-const updateUser = (req, res, next) => {
-  const { name, avatar } = req.body;
-  const userId = req.user._id;
-
-  User.findByIdAndUpdate(
-    userId,
-    { name, avatar },
-    { new: true, runValidators: true },
-  )
-    .then((user) => {
-      if (!user) {
-        next(new NOTFOUND_ERROR("User not found"));
-      }
-      res.send({ data: user });
     })
     .catch((err) => {
-      if (err.name === "ValidationError") {
-        res.status(INVALID_DATA_ERROR).send({ message: err.message });
-      } else {
-        next(err);
+      console.error(err);
+      if (err.message === "Incorrect email or password") {
+        res.status(UNAUTHORIZED_ERROR).send({ message: err.message });
       }
     });
 };
+
+//* Add a controller and route to get the current user
+
+//* Add a controller and route to update a user
 
 module.exports = {
   getUsers,
   getUser,
   createUser,
-  updateUser,
+  loginUser,
 };

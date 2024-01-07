@@ -4,7 +4,6 @@ const {
   NOTFOUND_ERROR,
   DEFAULT_ERROR,
   INVALID_DATA_ERROR,
-  UNAUTHORIZED_ERROR,
 } = require("../utils/errors");
 
 const createItem = (req, res) => {
@@ -39,18 +38,9 @@ const getItems = (req, res) => {
 const deleteItem = (req, res) => {
   const { itemId } = req.params;
 
-  ClothingItem.findByIdAndDelete({ itemId })
+  ClothingItem.findByIdAndDelete(itemId)
     .orFail()
-    .then((item) => {
-      if (!item.owner.equals(req.user._id)) {
-        throw new Error(
-          UNAUTHORIZED_ERROR("You do not have access to this item"),
-        );
-      }
-      return item
-        .deleteOne()
-        .then(() => res.status(200).send({ message: "Item was deleted!" }));
-    })
+    .then((item) => res.status(200).send(item))
     .catch((err) => {
       console.error(err);
       if (err.name === "DocumentNotFoundError") {
@@ -62,6 +52,8 @@ const deleteItem = (req, res) => {
       }
     });
 };
+
+//* Edit delete item logic so only the owner can delete a card
 
 const likeItem = (req, res) => {
   const { itemId } = req.params;
