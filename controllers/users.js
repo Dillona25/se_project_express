@@ -19,22 +19,6 @@ const getUsers = (req, res) => {
     });
 };
 
-const getUser = (req, res) => {
-  const { userId } = req.params;
-  User.findById(userId)
-    .then((user) => res.status(200).send({ data: user }))
-    .catch((err) => {
-      console.error(err);
-      if (err.name === "DocumentNotFoundError") {
-        res.status(NOTFOUND_ERROR).send({ message: err.message });
-      } else if (err.name === "CastError") {
-        res.status(INVALID_DATA_ERROR).send({ message: err.message });
-      } else {
-        res.status(DEFAULT_ERROR).send({ message: "Internal server error" });
-      }
-    });
-};
-
 const createUser = (req, res) => {
   const { name, avatar, email, password } = req.body;
   User.findOne({ email })
@@ -61,11 +45,11 @@ const createUser = (req, res) => {
         res.status(CONFLICT_ERROR).send({ message: err.message });
       } else if (err.message === "Enter a valid email") {
         res.status(INVALID_DATA_ERROR).send({ message: err.message });
+      } else {
+        res.status(DEFAULT_ERROR).send({ message: err.message });
       }
     });
 };
-
-//* Add a controller and route to login a user
 
 const loginUser = (req, res) => {
   const { email, password } = req.body;
@@ -95,13 +79,29 @@ const loginUser = (req, res) => {
     });
 };
 
-//* Add a controller and route to get the current user
+const getCurrentUser = (req, res) => {
+  const { _id: userId } = req.user;
+
+  User.findById(userId)
+    .then((user) => {
+      if (!user) {
+        return Promise.reject(new Error("User not found"));
+      } else {
+        res.send({ data: user });
+      }
+    })
+    .catch((err) => {
+      if (err.message === "User not found") {
+        res.status(NOTFOUND_ERROR).send({ message: err.message });
+      }
+    });
+};
 
 //* Add a controller and route to update a user
 
 module.exports = {
   getUsers,
-  getUser,
   createUser,
   loginUser,
+  getCurrentUser,
 };
