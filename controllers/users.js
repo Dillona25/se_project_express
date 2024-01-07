@@ -70,23 +70,21 @@ const createUser = (req, res) => {
 const loginUser = (req, res) => {
   const { email, password } = req.body;
 
+  if (!email || !password) {
+    res.status(INVALID_DATA_ERROR).send({ message: "Invalid credentials" });
+    return;
+  }
+
   return User.findUserByCredentials(email, password)
     .then((user) => {
+      const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
+        expiresIn: "7d",
+      });
+      res.send({ token });
       if (!user) {
         return Promise.reject(new Error("Incorrect email or password"));
       } else {
         return bcrypt.compare(password, user.password);
-      }
-    })
-    .then((matched) => {
-      if (!matched) {
-        return Promise.reject(new Error("Incorrect password or email"));
-      } else {
-        const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
-          expiresIn: "7d",
-        });
-        //* Most requests working, one illegal error and user not defined on 2 of the requests
-        res.send({ token });
       }
     })
     .catch((err) => {
