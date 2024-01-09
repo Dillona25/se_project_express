@@ -20,7 +20,7 @@ const createItem = (req, res) => {
     .catch((err) => {
       console.error(err);
       if (err.name === "ValidationError") {
-        res.status(NOTFOUND_ERROR).send({ message: err.message });
+        res.status(INVALID_DATA_ERROR).send({ message: err.message });
       } else {
         res.status(DEFAULT_ERROR).send({ message: "Internal server error" });
       }
@@ -57,6 +57,10 @@ const deleteItem = (req, res) => {
         res.status(NOTFOUND_ERROR).send({ message: err.message });
       } else if (err.message === "You do own this item") {
         res.status(FORBIDDEN_ERROR).send({ message: err.message });
+      } else if (err.name === "CastError") {
+        res.status(INVALID_DATA_ERROR).send({ message: err.message });
+      } else {
+        res.status(DEFAULT_ERROR).send({ message: "Internal server error" });
       }
     });
 };

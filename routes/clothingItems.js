@@ -10,7 +10,7 @@ const {
 
 router.post("/", handleAuthorization, createItem);
 
-router.get("/", handleAuthorization, getItems);
+router.get("/", getItems);
 
 router.put("/:itemId/likes", handleAuthorization, likeItem);
 

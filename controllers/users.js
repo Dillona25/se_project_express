@@ -1,7 +1,7 @@
-const User = require("../models/user");
 const bcrypt = require("bcryptjs");
-const { JWT_SECRET } = require("../utils/config");
 const jwt = require("jsonwebtoken");
+const { JWT_SECRET } = require("../utils/config");
+const User = require("../models/user");
 const {
   DEFAULT_ERROR,
   NOTFOUND_ERROR,
@@ -9,15 +9,6 @@ const {
   CONFLICT_ERROR,
   UNAUTHORIZED_ERROR,
 } = require("../utils/errors");
-
-const getUsers = (req, res) => {
-  User.find({})
-    .then((user) => res.status(200).send(user))
-    .catch((err) => {
-      console.error(err);
-      res.status(DEFAULT_ERROR).send({ message: "Internal server error" });
-    });
-};
 
 const createUser = (req, res) => {
   const { name, avatar, email, password } = req.body;
@@ -45,6 +36,8 @@ const createUser = (req, res) => {
         res.status(CONFLICT_ERROR).send({ message: err.message });
       } else if (err.message === "Enter a valid email") {
         res.status(INVALID_DATA_ERROR).send({ message: err.message });
+      } else if (err.name === "ValidationError") {
+        res.status(INVALID_DATA_ERROR).send({ message: err.message });
       } else {
         res.status(DEFAULT_ERROR).send({ message: err.message });
       }
@@ -59,17 +52,12 @@ const loginUser = (req, res) => {
     return;
   }
 
-  return User.findUserByCredentials(email, password)
+  User.findUserByCredentials(email, password)
     .then((user) => {
       const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
         expiresIn: "7d",
       });
       res.send({ token });
-      if (!user) {
-        return Promise.reject(new Error("Incorrect email or password"));
-      } else {
-        return bcrypt.compare(password, user.password);
-      }
     })
     .catch((err) => {
       console.error(err);
@@ -86,13 +74,14 @@ const getCurrentUser = (req, res) => {
     .then((user) => {
       if (!user) {
         return Promise.reject(new Error("User not found"));
-      } else {
-        res.send({ data: user });
       }
+      return res.send({ data: user });
     })
     .catch((err) => {
       if (err.message === "User not found") {
         res.status(NOTFOUND_ERROR).send({ message: err.message });
+      } else {
+        res.status(DEFAULT_ERROR).send({ message: err.message });
       }
     });
 };
@@ -109,13 +98,16 @@ const updateUser = (req, res) => {
     .then((user) => {
       if (!user) {
         return Promise.reject(new Error("User not found"));
-      } else {
-        res.send({ data: user });
       }
+      return res.send({ data: user });
     })
     .catch((err) => {
       if (err.message === "User not found") {
         res.status(NOTFOUND_ERROR).send({ message: err.message });
+      } else if (err.name === "ValidationError") {
+        res.status(INVALID_DATA_ERROR).send({ message: err.message });
+      } else {
+        res.status(DEFAULT_ERROR).send({ message: err.message });
       }
     });
 };
@@ -123,7 +115,6 @@ const updateUser = (req, res) => {
 //* Add a controller and route to update a user
 
 module.exports = {
-  getUsers,
   createUser,
   loginUser,
   getCurrentUser,
