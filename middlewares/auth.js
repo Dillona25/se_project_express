@@ -6,9 +6,7 @@ const authError = (res) => {
   res.status(UNAUTHORIZED_ERROR).send({ message: "Authorization Error" });
 };
 
-const extractBearerToken = (header) => {
-  return header.replace("Bearer ", "");
-};
+const extractBearerToken = (header) => header.replace("Bearer ", "");
 
 const handleAuthorization = (req, res, next) => {
   const { authorization } = req.headers;
