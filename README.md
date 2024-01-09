@@ -13,12 +13,11 @@ This project is the backend half of the WTWR project! Created using Node.js, and
 <img align="center" src="./Images/wtw 1.png" alt="WTW image">
 <img align="center" src="./Images/wtw 2.png" alt="WTW profile image">
 <img align="center" src="./Images/wtw 3.png" alt="WTW form image">
-<br>
-<br>
-You can find the live site to the entire application here: 
-<br>
+
+# You can find the live site to the entire application here:
+
 => https://dillona25.github.io/WhatToWear/#/
-<br>
-And you can find the front-end code here:
-<br>
+
+# You can find the front-end code here:
+
 => https://github.com/Dillona25/WhatToWear
