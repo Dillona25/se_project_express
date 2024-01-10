@@ -24,10 +24,10 @@ const createUser = (req, res) => {
     })
     .then((hash) => User.create({ name, avatar, email, password: hash }))
     .then((user) => {
-      const userPayload = user;
+      const userPayload = user.toObject();
       delete userPayload.password;
       res.status(201).send({
-        data: user,
+        data: userPayload,
       });
     })
     .catch((err) => {
@@ -63,6 +63,8 @@ const loginUser = (req, res) => {
       console.error(err);
       if (err.message === "Incorrect email or password") {
         res.status(UNAUTHORIZED_ERROR).send({ message: err.message });
+      } else {
+        res.status(DEFAULT_ERROR).send({ message: err.message });
       }
     });
 };
