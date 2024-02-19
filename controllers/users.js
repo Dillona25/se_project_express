@@ -2,23 +2,20 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { JWT_SECRET } = require("../utils/config");
 const User = require("../models/user");
-const {
-  DEFAULT_ERROR,
-  NOTFOUND_ERROR,
-  INVALID_DATA_ERROR,
-  CONFLICT_ERROR,
-  UNAUTHORIZED_ERROR,
-} = require("../utils/errors");
+const NotFoundError = require("../errors/notFound");
+const UnauthorizedError = require("../errors/unauthorizedError");
+const ConflictError = require("../errors/confilctError");
+const InvalidError = require("../errors/invalidError");
 
-const createUser = (req, res) => {
+const createUser = (req, res, next) => {
   const { name, avatar, email, password } = req.body;
   User.findOne({ email })
     .then((user) => {
       if (!email) {
-        throw new Error("Enter a valid email");
+        return next(new UnauthorizedError("Enter a valid email"));
       }
       if (user) {
-        throw new Error("Email is already in use!");
+        return next(new ConflictError("Email already in use"));
       }
       return bcrypt.hash(password, 10);
     })
@@ -32,14 +29,10 @@ const createUser = (req, res) => {
     })
     .catch((err) => {
       console.error(err);
-      if (err.message === "Email is already in use!") {
-        res.status(CONFLICT_ERROR).send({ message: err.message });
-      } else if (err.message === "Enter a valid email") {
-        res.status(INVALID_DATA_ERROR).send({ message: err.message });
-      } else if (err.name === "ValidationError") {
-        res.status(INVALID_DATA_ERROR).send({ message: err.message });
+      if (err.name === "ValidationError") {
+        next(new InvalidError("Validation Error"));
       } else {
-        res.status(DEFAULT_ERROR).send({ message: err.message });
+        next(err);
       }
     });
 };
@@ -48,7 +41,7 @@ const loginUser = (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
-    res.status(INVALID_DATA_ERROR).send({ message: "Invalid credentials" });
+    res.status(InvalidError).send({ message: "Invalid credentials" });
     return;
   }
 
@@ -61,30 +54,22 @@ const loginUser = (req, res) => {
     })
     .catch((err) => {
       console.error(err);
-      if (err.message === "Incorrect email or password") {
-        res.status(UNAUTHORIZED_ERROR).send({ message: err.message });
-      } else {
-        res.status(DEFAULT_ERROR).send({ message: err.message });
-      }
+      next(new UnauthorizedError("Invalid Credentials"));
     });
 };
 
-const getCurrentUser = (req, res) => {
+const getCurrentUser = (req, res, next) => {
   const { _id: userId } = req.user;
 
   User.findById(userId)
     .then((user) => {
       if (!user) {
-        return Promise.reject(new Error("User not found"));
+        next(new NotFoundError("User not found"));
       }
       return res.send({ data: user });
     })
     .catch((err) => {
-      if (err.message === "User not found") {
-        res.status(NOTFOUND_ERROR).send({ message: err.message });
-      } else {
-        res.status(DEFAULT_ERROR).send({ message: err.message });
-      }
+      next(err);
     });
 };
 
@@ -99,22 +84,18 @@ const updateUser = (req, res) => {
   )
     .then((user) => {
       if (!user) {
-        return Promise.reject(new Error("User not found"));
+        next(new NotFoundError("User not found"));
       }
       return res.send({ data: user });
     })
     .catch((err) => {
-      if (err.message === "User not found") {
-        res.status(NOTFOUND_ERROR).send({ message: err.message });
-      } else if (err.name === "ValidationError") {
-        res.status(INVALID_DATA_ERROR).send({ message: err.message });
+      if (err.name === "ValidationError") {
+        next(new InvalidError("Validation Error"));
       } else {
-        res.status(DEFAULT_ERROR).send({ message: err.message });
+        next(err);
       }
     });
 };
-
-//* Add a controller and route to update a user
 
 module.exports = {
   createUser,

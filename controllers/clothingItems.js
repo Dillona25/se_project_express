@@ -1,13 +1,9 @@
-const clothingItem = require("../models/clothingItem");
 const ClothingItem = require("../models/clothingItem");
-const {
-  NOTFOUND_ERROR,
-  DEFAULT_ERROR,
-  INVALID_DATA_ERROR,
-  FORBIDDEN_ERROR,
-} = require("../utils/errors");
+const InvalidError = require("../errors/invalidError");
+const NotFoundError = require("../errors/notFound");
+const ForbiddenError = require("../errors/forbiddenError");
 
-const createItem = (req, res) => {
+const createItem = (req, res, next) => {
   console.log(req);
   console.log(req.body);
   const { name, weather, imageUrl } = req.body;
@@ -20,9 +16,9 @@ const createItem = (req, res) => {
     .catch((err) => {
       console.error(err);
       if (err.name === "ValidationError") {
-        res.status(INVALID_DATA_ERROR).send({ message: err.message });
+        next(new InvalidError("Validation error"));
       } else {
-        res.status(DEFAULT_ERROR).send({ message: "Internal server error" });
+        next(err);
       }
     });
 };
@@ -32,7 +28,7 @@ const getItems = (req, res) => {
     .then((items) => res.status(200).send(items))
     .catch((err) => {
       console.error(err);
-      res.status(DEFAULT_ERROR).send({ message: "Internal server error" });
+      next(err);
     });
 };
 
@@ -43,25 +39,18 @@ const deleteItem = (req, res) => {
   ClothingItem.findOne({ _id: itemId })
     .then((item) => {
       if (!item) {
-        return Promise.reject(new Error("ID cannot be found"));
+        next(new NotFoundError("Item ID cannot be found"));
       }
       if (!item?.owner?.equals(userId)) {
-        return Promise.reject(new Error("You do own this item"));
+        next(new ForbiddenError("You do not own this item"));
       }
       return ClothingItem.deleteOne({ _id: itemId, owner: userId }).then(() => {
         res.status(201).send({ message: "Item deleted" });
       });
     })
     .catch((err) => {
-      if (err.message === "ID cannot be found") {
-        res.status(NOTFOUND_ERROR).send({ message: err.message });
-      } else if (err.message === "You do own this item") {
-        res.status(FORBIDDEN_ERROR).send({ message: err.message });
-      } else if (err.name === "CastError") {
-        res.status(INVALID_DATA_ERROR).send({ message: err.message });
-      } else {
-        res.status(DEFAULT_ERROR).send({ message: "Internal server error" });
-      }
+      console.error(err);
+      next(err);
     });
 };
 
@@ -71,21 +60,18 @@ const likeItem = (req, res) => {
   const { itemId } = req.params;
   const { _id: userId } = req.user;
 
-  clothingItem
-    .findByIdAndUpdate(itemId, { $addToSet: { likes: userId } }, { new: true })
-    .orFail()
+  ClothingItem.findByIdAndUpdate(
+    itemId,
+    { $addToSet: { likes: userId } },
+    { new: true },
+  )
+    .orFail(() => new NotFoundError("Item not found"))
     .then((item) => {
       res.send({ data: item });
     })
     .catch((err) => {
       console.error(err);
-      if (err.name === "DocumentNotFoundError") {
-        res.status(NOTFOUND_ERROR).send({ message: err.message });
-      } else if (err.name === "CastError") {
-        res.status(INVALID_DATA_ERROR).send({ message: err.message });
-      } else {
-        res.status(DEFAULT_ERROR).send({ message: "Internal server error" });
-      }
+      next(err);
     });
 };
 
@@ -93,21 +79,17 @@ const unlikeItem = (req, res) => {
   const { itemId } = req.params;
   const { _id: userId } = req.user;
 
-  clothingItem
-    .findByIdAndUpdate(itemId, { $pull: { likes: userId } }, { new: true })
-    .orFail()
+  ClothingItem.findByIdAndUpdate(
+    itemId,
+    { $pull: { likes: userId } },
+    { new: true },
+  )
+    .orFail(() => new NotFoundError("Item not found"))
     .then((item) => {
       res.send({ data: item });
     })
     .catch((err) => {
-      console.error(err);
-      if (err.name === "DocumentNotFoundError") {
-        res.status(NOTFOUND_ERROR).send({ message: err.message });
-      } else if (err.name === "CastError") {
-        res.status(INVALID_DATA_ERROR).send({ message: err.message });
-      } else {
-        res.status(DEFAULT_ERROR).send({ message: "Internal server error" });
-      }
+      next(err);
     });
 };
 
