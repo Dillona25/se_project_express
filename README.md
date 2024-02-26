@@ -16,7 +16,7 @@ This project is the backend half of the WTWR project! Created using Node.js, and
 
 # You can find the live site to the entire application here:
 
-=> https://dillona25.github.io/WhatToWear/#/
+=> https://DillonArnold.twilightparadox.com
 
 # You can find the front-end code here:
 
