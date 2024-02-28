@@ -37,7 +37,7 @@ const createUser = (req, res, next) => {
     });
 };
 
-const loginUser = (req, res) => {
+const loginUser = (req, res, next) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -64,7 +64,8 @@ const getCurrentUser = (req, res, next) => {
   User.findById(userId)
     .then((user) => {
       if (!user) {
-        next(new NotFoundError("User not found"));
+        // Adding this return statement prevents the code from running after the error is thrown
+        return next(new NotFoundError("User not found"));
       }
       return res.send({ data: user });
     })
@@ -73,7 +74,7 @@ const getCurrentUser = (req, res, next) => {
     });
 };
 
-const updateUser = (req, res) => {
+const updateUser = (req, res, next) => {
   const { name, avatar } = req.body;
   const userId = req.user._id;
 
@@ -84,7 +85,7 @@ const updateUser = (req, res) => {
   )
     .then((user) => {
       if (!user) {
-        next(new NotFoundError("User not found"));
+        return next(new NotFoundError("User not found"));
       }
       return res.send({ data: user });
     })

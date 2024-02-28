@@ -23,7 +23,7 @@ const createItem = (req, res, next) => {
     });
 };
 
-const getItems = (req, res) => {
+const getItems = (req, res, next) => {
   ClothingItem.find({})
     .then((items) => res.status(200).send(items))
     .catch((err) => {
@@ -32,17 +32,17 @@ const getItems = (req, res) => {
     });
 };
 
-const deleteItem = (req, res) => {
+const deleteItem = (req, res, next) => {
   const { itemId } = req.params;
   const { _id: userId } = req.user;
 
   ClothingItem.findOne({ _id: itemId })
     .then((item) => {
       if (!item) {
-        next(new NotFoundError("Item ID cannot be found"));
+        return next(new NotFoundError("Item ID cannot be found"));
       }
       if (!item?.owner?.equals(userId)) {
-        next(new ForbiddenError("You do not own this item"));
+        return next(new ForbiddenError("You do not own this item"));
       }
       return ClothingItem.deleteOne({ _id: itemId, owner: userId }).then(() => {
         res.status(201).send({ message: "Item deleted" });
@@ -56,7 +56,7 @@ const deleteItem = (req, res) => {
 
 //* Edit delete item logic so only the owner can delete a card
 
-const likeItem = (req, res) => {
+const likeItem = (req, res, next) => {
   const { itemId } = req.params;
   const { _id: userId } = req.user;
 
@@ -75,7 +75,7 @@ const likeItem = (req, res) => {
     });
 };
 
-const unlikeItem = (req, res) => {
+const unlikeItem = (req, res, next) => {
   const { itemId } = req.params;
   const { _id: userId } = req.user;
 
