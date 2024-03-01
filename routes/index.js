@@ -2,7 +2,7 @@ const router = require("express").Router();
 const { loginUser, createUser } = require("../controllers/users");
 const clothingItem = require("./clothingItems");
 const user = require("./users");
-const { NOTFOUND_ERROR } = require("../utils/errors");
+const { NotFoundError } = require("../errors/notFound");
 const {
   userAuthenticationValidator,
   userBodyValidator,
@@ -13,8 +13,8 @@ router.use("/users", user);
 router.post("/signup", userBodyValidator, createUser);
 router.post("/signin", userAuthenticationValidator, loginUser);
 
-router.use((req, res) => {
-  res.status(NOTFOUND_ERROR).send({ message: "Route not found" });
+router.use((req, res, next) => {
+  next(new NotFoundError("Route not found"));
 });
 
 module.exports = router;
